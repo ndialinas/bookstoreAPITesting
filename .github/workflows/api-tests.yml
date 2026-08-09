@@ -38,12 +38,12 @@ jobs:
         run: |
           if [ -n "$BASE_URL" ]; then
             echo "Using API base URL supplied by BOOKS_API_BASE_URL"
-            mvn -B -ntp clean verify clean verify \
+            mvn -B -ntp clean verify \
               -DbaseUrl="$BASE_URL"
           else
             echo "BOOKS_API_BASE_URL is not configured"
             echo "Using api.base-url from serenity.properties"
-            mvn -B -ntp clean verify clean verify
+            mvn -B -ntp clean verify
           fi
 
       - name: Upload Serenity report
