@@ -1,0 +1,72 @@
+# Maven build output
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Compiled Java files
+*.class
+
+# Java archives
+*.jar
+*.war
+*.ear
+
+# Log files
+*.log
+*.log.gz
+logs/
+log/
+
+# Serenity generated reports and screenshots
+target/site/serenity/
+target/site/serenity/**
+target/logs/
+
+# Test result files
+surefire-reports/
+failsafe-reports/
+*.dump
+*.dumpstream
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Java virtual-machine crash logs
+hs_err_pid*
+replay_pid*
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
+
+# Local test configuration overrides
+serenity.local.conf

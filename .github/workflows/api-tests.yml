@@ -1,0 +1,67 @@
+name: Bookstore API tests
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-tests:
+    name: Run Serenity API tests
+    runs-on: ubuntu-latest
+
+    env:
+      BASE_URL: ${{ secrets.BOOKS_API_BASE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run API tests
+        shell: bash
+        run: |
+          if [ -n "$BASE_URL" ]; then
+            echo "Using API base URL supplied by BOOKS_API_BASE_URL"
+            mvn -B -ntp clean verify clean verify \
+              -DbaseUrl="$BASE_URL"
+          else
+            echo "BOOKS_API_BASE_URL is not configured"
+            echo "Using api.base-url from serenity.properties"
+            mvn -B -ntp clean verify clean verify
+          fi
+
+      - name: Upload Serenity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: serenity-api-report
+          path: target/site/serenity
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Maven test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-test-reports
+          path: |
+            target/surefire-reports
+            target/failsafe-reports
+          if-no-files-found: warn
+          retention-days: 14
