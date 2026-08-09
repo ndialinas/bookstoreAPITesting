@@ -1,6 +1,9 @@
 package com.bookstore.tests.books;
 
+import com.bookstore.data.authors.AuthorTestData;
 import com.bookstore.data.books.BookTestData;
+import com.bookstore.model.authors.Author;
+import com.bookstore.model.authors.AuthorRequest;
 import com.bookstore.model.books.Book;
 import com.bookstore.model.books.BookRequest;
 import com.bookstore.tests.ApiTestBase;
@@ -8,6 +11,8 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
 
 class BooksApiTest extends ApiTestBase {
 
@@ -105,6 +110,49 @@ class BooksApiTest extends ApiTestBase {
             .isEqualTo(expectedBook);
     }
 
+   
+    @Test
+    void shouldRejectCreatingBookWithInvalidIdValues() {
+        Map<String, String> invalidBook = Map.of(
+        "id", "3333333333333333333333333333333333333333333",
+        "title", "string",
+        "description", "string",
+        "pageCount", "0",
+        "excerpt", "string",
+        "publishDate", "2026-08-09T19:57:00.793Z"
+        );
+        
+        Response response =
+                booksSteps.createBookInvalidValues(invalidBook);
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+
+        assertThat(response.jsonPath().getList("errors.'$.id'", String.class).get(0))
+            .contains("The JSON value could not be converted to System.Int32. Path: $.id");
+    }
+
+    @Test
+    void shouldRejectCreatingBookWithInvalidPageCountValues() {
+       Map<String, String> invalidBook = Map.of(
+        "id", "3",
+        "title", "0",
+        "description", "string",
+        "pageCount", "string",
+        "excerpt", "string",
+        "publishDate", "2026-08-09T19:57:00.793Z"
+        );
+        
+        Response response =
+                booksSteps.createBookInvalidValues(invalidBook);
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+
+        assertThat(response.jsonPath().getList("errors.'$.pageCount'", String.class).get(0))
+            .contains("The JSON value could not be converted to System.Int32. Path: $.pageCount");
+    }
+
     @Test
     void shouldCreateBookWithNoDate() {
         BookRequest request =
@@ -128,7 +176,35 @@ class BooksApiTest extends ApiTestBase {
             .isEqualTo(expectedBook);
     }
 
-     @Test
+    @Test
+    void shouldCreateEmptyBookWithoutValues() {
+        BookRequest expectedBook =
+               BookTestData.withoutValues();
+
+        Response response =
+                booksSteps.createBook(expectedBook);
+
+        assertThat(response.statusCode())
+                .isEqualTo(200);
+
+        Book actualBook =
+                response.as(Book.class);
+
+        assertThat(actualBook.id())
+                .isEqualTo(0);
+        assertThat(actualBook.title())
+                .isNull();;
+        assertThat(actualBook.description())
+                .isNull();
+         assertThat(actualBook.excerpt())
+                .isNull();
+        assertThat(actualBook.pageCount())
+                .isEqualTo(0);
+        assertThat(actualBook.publishDate())
+                .isEqualTo("0001-01-01T00:00:00");
+    }
+
+    @Test
     void shouldCreateBookWithNoPageCount() {
         BookRequest request =
                 BookTestData.noPageCount();
@@ -171,7 +247,135 @@ class BooksApiTest extends ApiTestBase {
             .usingRecursiveComparison()
             .isEqualTo(expectedBook);
         
-        }
+      }
+
+    @Test
+    void shouldUpdateBookWithNoPublishDate() {
+        BookRequest request = BookTestData.noPublishDate();
+        Response response =
+                booksSteps.updateBook(
+                        BookTestData.EXISTING_BOOK_ID,
+                        request
+                );
+
+        assertThat(response.statusCode())
+                .isEqualTo(200);
+        Book updatedBook =
+                response.as(Book.class);
+        Book expectedBook =
+            request.toBook(updatedBook.id()).toBuilder()
+                .publishDate("0001-01-01T00:00:00")
+                .build();;
+
+        assertThat(updatedBook)
+            .usingRecursiveComparison()
+            .isEqualTo(expectedBook);
+        
+      }
+
+    
+    @Test
+    void shouldUpdateBookWithNoPageCount() {
+        BookRequest request = BookTestData.noPageCount();
+        Response response =
+                booksSteps.updateBook(
+                        BookTestData.EXISTING_BOOK_ID,
+                        request
+                );
+
+        assertThat(response.statusCode())
+                .isEqualTo(200);
+        
+
+         Book updatedBook =
+                response.as(Book.class);
+        Book expectedBook =
+            request.toBook(updatedBook.id()).toBuilder()
+                .pageCount(0)
+                .build();;
+
+        assertThat(updatedBook)
+            .usingRecursiveComparison()
+            .isEqualTo(expectedBook);
+        
+    }
+
+    @Test
+    void shouldUpdateBookWithoutValues() {
+        BookRequest expectedBook =
+               BookTestData.withoutValues();
+
+        Response response =
+                booksSteps.updateBook(BookTestData.EXISTING_BOOK_ID,expectedBook);
+
+        assertThat(response.statusCode())
+                .isEqualTo(200);
+
+        Book actualBook =
+                response.as(Book.class);
+
+        assertThat(actualBook.id())
+                .isEqualTo(0);
+        assertThat(actualBook.title())
+                .isNull();;
+        assertThat(actualBook.description())
+                .isNull();
+         assertThat(actualBook.excerpt())
+                .isNull();
+        assertThat(actualBook.pageCount())
+                .isEqualTo(0);
+        assertThat(actualBook.publishDate())
+                .isEqualTo("0001-01-01T00:00:00");
+    }
+
+    @Test
+    void shouldNotUpdateBookWithWrongPublishDate() {
+        BookRequest request = BookTestData.wrongPublishDate();
+        Response response =
+                booksSteps.updateBook(
+                        BookTestData.EXISTING_BOOK_ID,
+                        request
+                );
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+        
+
+        assertThat(response.jsonPath().getList("errors.'$.publishDate'", String.class).get(0))
+            .contains("The JSON value could not be converted to System.DateTime. Path: $.publishDate");
+        
+    }
+
+    @Test
+    void shouldNotUpdateBookWithInvalidId() {
+        BookRequest request = BookTestData.basicPut();
+        Response response =
+                booksSteps.updateBookInvalidId(
+                        "someId",
+                        request
+                );
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+        
+
+        assertThat(response.jsonPath().getString("errors.id[0]"))
+            .isEqualTo("The value 'someId' is not valid.");
+        
+    }
+
+    @Test
+    void shouldRejectUpdateWhenBookIdIsEmpty() {
+        Response response =
+                booksSteps.updateBookWithoutId(
+                        BookTestData.basicPost()
+                );
+
+        assertThat(response.statusCode())
+                .isEqualTo(405);
+    }
+
+      
 
     @Test
     void shouldDeleteBook() {
@@ -180,6 +384,19 @@ class BooksApiTest extends ApiTestBase {
 
         assertThat(response.statusCode())
                 .isEqualTo(200);
+
+    }
+
+    @Test
+    void shouldNotDeleteBookWithInvalidId() {
+        Response response =
+                booksSteps.deleteBookInvalidId("someId");
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+
+        assertThat(response.jsonPath().getString("errors.id[0]"))
+            .isEqualTo("The value 'someId' is not valid.");
 
     }
 }

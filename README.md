@@ -34,6 +34,7 @@ The Authors API is included as an additional extension:
 - Serenity REST Assured
 - REST Assured
 - AssertJ
+- Lombok
 - Jackson
 - GitHub Actions
 
@@ -144,6 +145,12 @@ Running the tests without an override uses the configured default:
 
 ```bash
 mvn clean verify
+```
+
+Run a single test with the following command
+
+```bash
+mvn clean verify -Dtest='TestClass#TestMethod'
 ```
 
 A different base URL can be supplied for one execution:

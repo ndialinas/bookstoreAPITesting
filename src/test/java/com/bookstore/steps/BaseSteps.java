@@ -3,16 +3,14 @@ package com.bookstore.steps;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public abstract class BaseSteps {
 
     private RequestSpecification requestSpecification;
 
-    protected final Logger logger =
-            LoggerFactory.getLogger(getClass());
-
+    
     public void configureRequestSpecification(
             String baseUrl,
             String basePath) {
@@ -28,7 +26,6 @@ public abstract class BaseSteps {
                     "Base path cannot be blank"
             );
         }
-
         requestSpecification = new RequestSpecBuilder()
                 .setBaseUri(baseUrl)
                 .setBasePath(basePath)

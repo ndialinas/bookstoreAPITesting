@@ -63,6 +63,15 @@ public class BooksSteps extends BaseSteps {
                 .post(BOOKS_PATH);
     }
 
+    @Step("Create a book with invalid values")
+    public Response createBookInvalidValues(Object invalidRequest) {
+        return given()
+                .spec(requestSpecification())
+                .body(invalidRequest)
+            .when()
+                .post(BOOKS_PATH);
+    }
+
     @Step("Update book with ID {0}")
     public Response updateBook(
             Integer bookId,
@@ -76,8 +85,41 @@ public class BooksSteps extends BaseSteps {
                 .put(BOOKS_PATH + "/{id}");
     }
 
+    @Step("Update book with invalid ID {0}")
+    public Response updateBookInvalidId(
+            Object bookId,
+            BookRequest request) {
+
+        return given()
+                .spec(requestSpecification())
+                .pathParam("id", bookId)
+                .body(request)
+            .when()
+                .put(BOOKS_PATH + "/{id}");
+    }
+
+    @Step("Update book without ID")
+    public Response updateBookWithoutId(
+            BookRequest request) {
+
+        return given()
+                .spec(requestSpecification())
+                .body(request)
+            .when()
+                .put(BOOKS_PATH + "/");
+    }
+
     @Step("Delete book with ID {0}")
     public Response deleteBook(Integer bookId) {
+        return given()
+                .spec(requestSpecification())
+                .pathParam("id", bookId)
+            .when()
+                .delete(BOOKS_PATH + "/{id}");
+    }
+
+    @Step("Delete book with invalid ID {0}")
+    public Response deleteBookInvalidId(Object bookId) {
         return given()
                 .spec(requestSpecification())
                 .pathParam("id", bookId)

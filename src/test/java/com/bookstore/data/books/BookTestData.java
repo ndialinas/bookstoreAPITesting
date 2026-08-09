@@ -28,4 +28,8 @@ public final class BookTestData {
     public static BookRequest noPageCount() {
         return BookRequest.builder().title("Serenity API Test Book").description("Book used by the POST test").excerpt("Test excerpt").publishDate("2026-08-08T00:00:00Z").build();
     }
+
+    public static BookRequest withoutValues() {
+        return BookRequest.builder().build();
+    }
 }

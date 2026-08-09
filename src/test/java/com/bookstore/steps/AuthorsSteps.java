@@ -3,6 +3,7 @@ package com.bookstore.steps;
 import com.bookstore.model.authors.Author;
 import com.bookstore.model.authors.AuthorRequest;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.annotations.Step;
 
 import java.util.Arrays;
@@ -10,10 +11,11 @@ import java.util.List;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 
+@Slf4j
 public class AuthorsSteps extends BaseSteps {
 
     private static final String AUTHORS_PATH = "/Authors";
-    private static final String BOOK_AUTHORS_PATH = "/Authors/authors/books/";
+    private static final String BOOK_AUTHORS_PATH = AUTHORS_PATH + "/authors/books/";
 
     @Step("Get all authors")
     public List<Author> getAllAuthors() {
@@ -64,12 +66,30 @@ public class AuthorsSteps extends BaseSteps {
                 .get(BOOK_AUTHORS_PATH + "/{id}");
     }
 
+    @Step("Get author of book with invalid book ID {0}")
+    public Response getAuthorsOfBookByInvalidId(Object bookId) {
+        return given()
+                .spec(requestSpecification())
+                .pathParam("id", bookId)
+            .when()
+                .get(BOOK_AUTHORS_PATH + "/{id}");
+    }
+
     @Step("Create an author")
     public Response createAuthor(AuthorRequest request) {
-        logger.info("Creating author with ", request);
+        log.info("Creating author with ", request);
         return given()
                 .spec(requestSpecification())
                 .body(request)
+            .when()
+                .post(AUTHORS_PATH);
+    }
+
+    @Step("Try to create an author with invalid values")
+    public Response createAuthorInvalidValues(Object invalidRequest) {
+        return given()
+                .spec(requestSpecification())
+                .body(invalidRequest)
             .when()
                 .post(AUTHORS_PATH);
     }
@@ -78,7 +98,7 @@ public class AuthorsSteps extends BaseSteps {
     public Response updateAuthor(
             Integer authorId,
             AuthorRequest request) {
-        logger.info("Updating author with {0} {1}", authorId, request);
+        log.info("Updating author with {0} {1}", authorId, request);
         return given()
                 .spec(requestSpecification())
                 .pathParam("id", authorId)

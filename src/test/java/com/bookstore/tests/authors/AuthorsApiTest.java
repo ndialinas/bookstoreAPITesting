@@ -6,20 +6,25 @@ import com.bookstore.model.authors.Author;
 import com.bookstore.model.authors.AuthorRequest;
 import com.bookstore.tests.ApiTestBase;
 
-import io.restassured.common.mapper.TypeRef;
+
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
 
 import java.util.List;
+import java.util.Map;
 
+
+@Slf4j
 class AuthorsApiTest extends ApiTestBase {
 
     @Test
     void shouldRetrieveAllAuthors() {
         var authors = authorsSteps.getAllAuthors();
-
         assertThat(authors)
                 .isNotNull()
                 .isNotEmpty();
@@ -51,7 +56,7 @@ class AuthorsApiTest extends ApiTestBase {
                 );
     }
 
-     @Test
+    @Test
     void shouldRetrieveAuthorsOfBookById() {
         List<Author> expectedAuthors = List.of(
         Author.builder()
@@ -86,14 +91,75 @@ class AuthorsApiTest extends ApiTestBase {
                 authorsSteps.getAuthorsOfBookById(
                         BookTestData.EXISTING_BOOK_ID
                 );
-        List<Author> authors = response.as(
-                new TypeRef<List<Author>>() {
-                }
-        );
-        assertThat(response.statusCode())
-                .isEqualTo(200);
+        assertThat(response.statusCode()).isEqualTo(200);
 
-        assertThat(authors).as("Authors returned").containsAnyElementsOf(expectedAuthors);
+        assertThat(getAuthors(response)).as("Authors returned").containsAnyElementsOf(expectedAuthors);
+    }
+
+    @Test
+    void shouldRetrieveEmptyAuthorsOfBookByIdZero() {
+        Response response =
+                authorsSteps.getAuthorsOfBookById(0);
+        
+        assertThat(response.statusCode()).isEqualTo(200);
+
+        log.info("Authors returned", getAuthors(response));
+
+        assertThat(getAuthors(response)).as("Authors returned").isNullOrEmpty();
+    
+    }
+
+    @Test
+    void shouldNotRetrieveAuthorsOfBooksWhenBookIdIsString() {
+        Response response =
+                authorsSteps.getAuthorsOfBookByInvalidId("someId");
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+
+        assertThat(response.jsonPath().getString("errors.idBook[0]"))
+            .isEqualTo("The value 'someId' is not valid.");
+
+    }
+
+    
+    @Test
+    void shouldRejectCreatingAuthorWithInvalidIdValues() {
+        Map<String, String> invalidAuthor = Map.of(
+        "id", "3333333333333333333333333333333333333333333",
+        "idBook", "3",
+        "firstName", "First Name",
+        "lastName", "Last Name"
+        );
+        
+        Response response =
+                authorsSteps.createAuthorInvalidValues(invalidAuthor);
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+
+        assertThat(response.jsonPath().getList("errors.'$.id'", String.class).get(0))
+            .contains("The JSON value could not be converted to System.Int32. Path: $.id");
+    }
+
+    
+    @Test
+    void shouldRejectCreatingAuthorWithInvalidBookIdValues() {
+        Map<String, String> invalidAuthor = Map.of(
+        "id", "3",
+        "idBook", "3333333333333333333333333333333333333333333",
+        "firstName", "First Name",
+        "lastName", "Last Name"
+        );
+        
+        Response response =
+                authorsSteps.createAuthorInvalidValues(invalidAuthor);
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+
+        assertThat(response.jsonPath().getList("errors.'$.idBook'", String.class).get(0))
+            .contains("The JSON value could not be converted to System.Int32. Path: $.idBook");
     }
 
     @Test
@@ -217,7 +283,7 @@ class AuthorsApiTest extends ApiTestBase {
                 .isEqualTo(expectedAuthor.idBook());
     }
 
-     @Test
+    @Test
     void shouldCreateEmptyAuthorWithoutValues() {
         AuthorRequest expectedAuthor =
                 AuthorTestData.withoutValues();
@@ -287,5 +353,18 @@ class AuthorsApiTest extends ApiTestBase {
 
         assertThat(response.statusCode())
                 .isEqualTo(200);
+    }
+
+    @Test
+    void shouldNotDeleteAuthorWithInvalidId() {
+        Response response =
+                authorsSteps.deleteAuthorWithInvalidId("someId");
+
+        assertThat(response.statusCode())
+                .isEqualTo(400);
+
+        assertThat(response.jsonPath().getString("errors.id[0]"))
+            .isEqualTo("The value 'someId' is not valid.");
+
     }
 }
