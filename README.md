@@ -87,8 +87,11 @@ API under test
 
 The test classes contain the scenarios and AssertJ validations:
 
+- `ApiTestBase`
 - `BooksApiTest`
 - `AuthorsApiTest`
+
+The `ApiTestBase` class contains steps initialization configuration as well as logging file attachment implementation to the report
 
 ### Step classes
 

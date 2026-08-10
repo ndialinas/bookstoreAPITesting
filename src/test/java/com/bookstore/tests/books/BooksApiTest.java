@@ -1,9 +1,7 @@
 package com.bookstore.tests.books;
 
-import com.bookstore.data.authors.AuthorTestData;
+
 import com.bookstore.data.books.BookTestData;
-import com.bookstore.model.authors.Author;
-import com.bookstore.model.authors.AuthorRequest;
 import com.bookstore.model.books.Book;
 import com.bookstore.model.books.BookRequest;
 import com.bookstore.tests.ApiTestBase;
